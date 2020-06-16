@@ -17,7 +17,7 @@ def resize20(digitimg):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ret = cv2.resize(gray, (20,20), fx=1, fy=1, interpolation=cv2.INTER_AREA)
 
-    ret, thr = cv2.threshold(ret, 127, 255, cv2.THRESHOLD_INV)
+    ret, thr = cv2.threshold(ret, 127, 255, cv2.THRESH_BINARY_INV)
     cv2.imshow('ret', thr)
 
     return thr.reshape(-1, 400).astype(np.float32) # astype : 데이터 타입을 바꿔줌
@@ -38,6 +38,7 @@ def learningDigit():
 
     np.savez('digits_for_ocr.npz', train=train, train_labels=train_labels)
     print('데이터 저장')
+
 
 
 # 학습한 내용이 저장된 파일을 열어 내용을 읽은 후 traindata 와 traindata_labels 를 리턴한다.
@@ -64,7 +65,7 @@ def main():
     learningDigit()
     ocrdata = 'digits_for_ocr.npz'
     traindata, traindata_labels = loadLearningDigit(ocrdata)
-    digits = ['imaes/' + str(x) + '.png' for x in range(10)]
+    digits = [str(x) + '.png' for x in range(10)]
 
     print(traindata.shape)
     print(traindata_labels.shape)
