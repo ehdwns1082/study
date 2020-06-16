@@ -44,7 +44,7 @@ def resize20(digitimg):  # 실제 손글씨 이미지를 인자로 받음
     return thr.reshape(-1, 400).astype(np.float32)  # thr 을 1x400 배열로 변환하여 리턴함
                                                     # astype : 데이터 타입을 바꿔줌
     '''
-    numpy.reshape(array, newShape, order='C')
+    np.reshape(array, newShape, order='C')
     1st : 대상 어레이
     2nd : 바뀔 모양(int or tuple of ints)  
           => 한쪽을 -1 로 설정하면 전체 갯수에 맞게 알아서 조정됨. ex) (100)->(2,50) 이면 (100)->(-1,2)->(50,2) 
@@ -59,24 +59,43 @@ def learningDigit():
     img = cv2.imread('digitimg.png')  # 학습데이터를 img 에 저장
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # img 를 그레이스케일 변환 후 gray 에 저장
 
-    cells = [np.hsplit(row, 100) for row in np.vsplit(gray, 50)]  # gray(실제 손글씨 흑백버전) 배열을 50 개의 서브 어레이로 수직 방향으로 분할하여 row 에 저장
-                                                                  # row 를 100개의 서브 어레이로 수평 방향으로 분할하여 cells 에 저장
-    x = np.array(cells)
+    cells = [np.hsplit(row, 100) for row in np.vsplit(gray, 50)]  # gray(2000x1000) 배열을 50 개의 서브 어레이로 수직 방향으로 분할하여 row(2000x20) 에 저장 (반복 수행)
+                                                                  # => 각 숫자별로 세로로 5개씩 있고, 0~9까지 이므로 하나의 20x20 셀을 구하기 위해 세로를 50으로 나눔
+                                                                  # row(2000x20) 를 100개의 서브 어레이로 수평 방향으로 분할하여 cells(20x20) 에 저장 (반복 수행)
+                                                                  # => 각 숫자별로 가로로 100개씩 있으므로 하나의 20x20 셀을 구하기 위해 가로를 100으로 나눔
 
-    train = x[:,:].reshape(-1,400).astype(np.float32)
+    x = np.array(cells)  # x 는 20x20 크기의 배열들의 배열
 
-    k = np.arange(10)
-    train_labels = np.repeat(k,500)[:, np.newaxis]
+    train = x[:,:].reshape(-1,400).astype(np.float32)  # x(20x20) 을 1x400 크기의 배열로 만들어 train 에 저장
 
-    np.savez('digits_for_ocr.npz', train=train, train_labels=train_labels)
+    k = np.arange(10)  # k = [0 1 2 3 4 5 6 7 8 9], k.shape = (10,)
+    train_labels = np.repeat(k, 500)[:, np.newaxis]  # 길이 10짜리 배열 k를 500번 반복하여 5000개 cell 에 대한 label 배열을 만듬
+                                                     # arr[:, np.newaxis] : k.shape = (10, ) 이므로 열에 대한 축을 새롭게 생성함
+    '''
+    np.repeat(array, repeats, axis)
+    1st : 인풋 어레이
+    2nd : 각각의 요소를 얼마나 반복할건지
+    3rd : 옵션(int) : 값을 반복할 axis 
+    return : ndarray ; 아웃풋 어레이는 axis 빼고 인풋 어레이와 모양이 같다.  
+    '''
+    # np.savenpz('digits_for_ocr.npz', train=train, train_labels=train_labels)
+    np.savetxt('digits_for_ocr.txt', train, fmt='%2d', delimiter=' ')
+    np.savetxt('digits_for_ocr_labels.txt', train_labels, fmt='%2d', delimiter=' ')
     print('데이터 저장')
 
 
 # 학습한 내용이 저장된 파일을 열어 내용을 읽은 후 traindata 와 traindata_labels 를 리턴한다.
-def loadLearningDigit(ocrdata):
-    with np.load(ocrdata) as f:
+
+'''def loadLearningDigit(ocrdata):
+    with np.loadtxt(ocrdata) as f:
         traindata = f['train']
         traindata_labels = f['train_labels']
+        
+    return traindata, traindata_labels'''
+def loadLearningDigit(ocrdata, labels):
+    traindata = np.loadtxt(ocrdata)
+    traindata_labels = np.loadtxt(labels)
+
     return traindata, traindata_labels
 
 
@@ -95,14 +114,16 @@ def OCR_for_Digits(test, traindata, traindata_labels):
 def main():
     #learningDigit()
     #'''
-    ocrdata = 'digits_for_ocr.npz'
-    traindata, traindata_labels = loadLearningDigit(ocrdata)
+    ocrdata = 'digits_for_ocr.txt'
+    labels = 'digits_for_ocr_labels.txt'
+
+    traindata, traindata_labels = loadLearningDigit(ocrdata, labels)
     digits = [str(x) + '.png' for x in range(10)]  # digits 에 손글씨 입력
 
     print(traindata.shape)
     print(traindata_labels.shape)
 
-    savez = False
+    savetxt = False
     for digit in digits:
         test = resize20(digit)
         result = OCR_for_Digits(test,traindata,traindata_labels)
@@ -111,14 +132,15 @@ def main():
 
         k = cv2.waitKey(0) & 0xFF
         if k > 47 and k < 58:
-            savez = True
+            savetxt = True
             traindata = np.append(traindata, test, axis=0)
             new_label = np.array(int(chr(k))).reshape(-1,1)
             traindata_labels = np.append(traindata_labels, new_label, axis=0)
 
         cv2.destroyAllWindows()
-        if savez:
-            np.savez('digits_for_ocr.npz', train=traindata, train_lables = traindata_labels)
+        if savetxt:
+            np.savetxt('digits_for_ocr.txt',traindata, fmt='%2d', delimiter='')
+            np.savetxt('digits_for_ocr_labels.txt',traindata_labels, fmt='%2d', delimiter='')
         #'''
 main()
 
