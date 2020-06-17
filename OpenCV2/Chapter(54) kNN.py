@@ -48,6 +48,11 @@ def knn():
     plt.scatter(newcomer[:,0], newcomer[:,1], 80, 'g', 'o')
     plt.show()
 
+
+
+
+    
+
     knn = cv2.ml.KNearest_create()
     knn.train(traindata, cv2.ml.ROW_SAMPLE, resp)
     ret, result, neighbours, dist = knn.findNearest(newcomer, 3)
