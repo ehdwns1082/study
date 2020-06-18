@@ -1,8 +1,9 @@
 # https://blog.naver.com/PostView.nhn?blogId=samsjang&logNo=220673340574&categoryNo=66&parentCategoryNo=0&viewDate=&currentPage=1&postListTopCurrentPage=1&from=postView&userTopListOpen=true&userTopListCount=10&userTopListManageOpen=false&userTopListCurrentPage=1
 # 난수 생성 : https://datascienceschool.net/view-notebook/8bf41f87a08b4c44b307799577736a28/
 # ravel : https://rfriend.tistory.com/349
+# kNN : https://gomguard.tistory.com/51
 
-# k-Nearest Neighbours : 지도학습에 활용되는 가장 단순한 종류의 알고리즘
+# k-Nearest Neighbours : 지도학습에 활용되는 가장 단순한 종류의 알고리즘, 일반적으로 k 의 값은 총 데이터의 제곱은 값을 쓰지만 최적의 값에 대해서는 연구 진행중이다.
 '''
 1. 0~100 범위에서 2차원 좌표된 25개의 멤버를 랜덤하게 생성한다.
 2. 각 멤버들을 랜덤하게 클래스0(빨간 삼각형), 클래스1(파랑 사각형)으로 구분한다.

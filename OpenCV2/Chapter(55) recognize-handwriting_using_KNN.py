@@ -5,13 +5,13 @@
 3. 인식실패시 재학습시키기
 
 1. 초기 데이터 학습시키기
-   digitimg.png 는 2000x1000 사이즈이며, 각 숫자는 가로로 100개 세로로 5개씩이다.
+   digitimg.png 는 2000x1000 사이즈이며, 각 숫자는 가로로 100개 세로로 5개씩(5000개)이다.
 
-   1) 이미지에서 20x20 크기의 셀로 잘라서 총 5000개를 구성한다.
+   1) 이미지에서 20x20 크기의 셀로 잘라서 총 5000개 셀을 구성한다.
    2) 20x20 크기의 셀에 있는 픽셀값을 1차원으로 배열한다. 즉 1x400 배열이 됨.
    3) 각 숫자별로 400개의 배열이 있다고 하면, 총 배열(traindata)은 (5000,400) 크기가 됨.
    4) 0 에 해당하는 구역은 traindata[:500, :], 1 에 해당하는 구역은 traindata[500:1000, :], ~
-      traindata 에 이런 숫자표시를 할 수 없으므로 (5000,1) 크기를 가진 배열에다 순서대로 0을 500개, 1을 500개, ~ 식으로 구성하면 된다.
+      traindata 에 이런 숫자표시를 할 수 없으므로 (5000,) 크기를 가진 배열에다 순서대로 0을 500개, 1을 500개, ~ 식으로 구성하면 된다.
    5) 학습한 데이터를 재사용하기 위해 4까지 학습한 내용을 파일로 저장한다.
 
 2. 실제 손글씨 인식하기
@@ -102,9 +102,9 @@ def loadLearningDigit(ocrdata, labels):
 # 인자 test 는 우리가 인식할 손글씨 이미지를 resize20 으로 처리한 리턴값이다.
 # KNN 을 이용해 가장 일치하는 결과를 도춯하고 리턴한다.
 def OCR_for_Digits(test, traindata, traindata_labels):
-    knn = cv2.ml.KNearest_create()
-    knn.train(traindata, cv2.ml.ROW_SAMPLE, traindata_labels)
-    ret, result, neighbors, dist = knn.findNearest(test, k=5)
+    knn = cv2.ml.KNearest_create()  # kNN 알고리즘 초기화
+    knn.train(traindata, cv2.ml.ROW_SAMPLE, traindata_labels)  # 좌표와 라벨을 전달하여 모델을 훈련시킨다.
+    ret, result, neighbors, dist = knn.findNearest(test, k=5)  # k=5 로 해서 최근접 이웃들을 찾아서 새로 추가된 데이터가 어느쪽에 속하는지 결정.
 
     return result
 
@@ -112,7 +112,7 @@ def OCR_for_Digits(test, traindata, traindata_labels):
 # 각 숫자 파일은 0.png~9.png 이다. 숫자 파일을 20x20 으로 변환한 이미지를 화면에 보여주고 이 숫자를 인식한 결과를 print 로 출력한다.
 # 만약 인식한 숫자가 실제 숫자 이미지와 다르면 그에 해당하는 숫자를 키보드로 누르면 이 이미지에 대해 재학습 데이터를 만든다.
 def main():
-    #learningDigit()
+
     #'''
     ocrdata = 'digits_for_ocr.txt'
     labels = 'digits_for_ocr_labels.txt'
@@ -120,8 +120,8 @@ def main():
     traindata, traindata_labels = loadLearningDigit(ocrdata, labels)
     digits = [str(x) + '.png' for x in range(10)]  # digits 에 손글씨 입력
 
-    print(traindata.shape)
-    print(traindata_labels.shape)
+    print('traindata.shape : ', traindata.shape)
+    print('traindata_labels.shape : ', traindata_labels.shape)
 
     savetxt = False
     for digit in digits:
@@ -142,7 +142,15 @@ def main():
             np.savetxt('digits_for_ocr.txt',traindata, fmt='%2d', delimiter='')
             np.savetxt('digits_for_ocr_labels.txt',traindata_labels, fmt='%2d', delimiter='')
         #'''
-main()
+
+
+learningDigit()
+while True:
+    main()
+    out = cv2.waitKey(0) & 0xFF
+    if out == 27:
+        break
+
 
 
 

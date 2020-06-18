@@ -1,16 +1,6 @@
 import numpy as np
 
-traindata = np.random.randint(0, 100, (25, 2)).astype(np.float32)
-a = np.random.randint(0,2,(25,1)).astype(np.float32)
-red = traindata[a.ravel() == 0]
+k = np.arange(10)  # k = [0 1 2 3 4 5 6 7 8 9], k.shape = (10,)
+train_labels = np.repeat(k, 500)[:, np.newaxis]
 
-print(traindata)
-print(traindata.shape)
-print(' ')
-print(a)
-print(a.shape)
-print(' ')
-print(red)
-print(red.shape)
-
-print(a.ravel() == 0)
+print(train_labels.shape)
