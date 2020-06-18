@@ -48,11 +48,6 @@ def knn():
     plt.scatter(newcomer[:,0], newcomer[:,1], 80, 'g', 'o')
     plt.show()
 
-
-
-
-    
-
     knn = cv2.ml.KNearest_create()  # kNN 알고리즘을 초기화 한다.
     knn.train(traindata, cv2.ml.ROW_SAMPLE, resp)  # 좌표와 라벨을 전달하여 모델을 훈련시킨다.
     ret, result, neighbours, dist = knn.findNearest(newcomer, 3)  # k = 3으로 해서 최근접 이웃들을 찾아서 새로 추가된 데이터가 어느쪽에 속하는지 결정.
