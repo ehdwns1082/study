@@ -21,7 +21,7 @@ def makeTraindata():
     옵션2) randn : 가우시안 표준 정규 분포 ex) rand 와 사용법 같음
     옵션3) randint : 균일분포의 정수 난수 ex) np.random.randint(low, high=None, size=None) : high 를 입력하지 않으면 0 ~ low 사이의 숫자를, high 를 입력하면 low ~ high 숫자를 출력. size 는 난수배열의 크기(rand 와 형식 같음)
     '''
-    resp = np.random.randint(0,2,(25,1)).astype(np.float32)
+    resp = np.random.randint(0,2,(25,1)).astype(np.float32)  # response/ 25개의 데이터에 대해 0 또는 1로 라벨을 붙힘
     return traindata, resp
 
 def knn():
@@ -53,11 +53,11 @@ def knn():
 
     
 
-    knn = cv2.ml.KNearest_create()
-    knn.train(traindata, cv2.ml.ROW_SAMPLE, resp)
-    ret, result, neighbours, dist = knn.findNearest(newcomer, 3)
+    knn = cv2.ml.KNearest_create()  # kNN 알고리즘을 초기화 한다.
+    knn.train(traindata, cv2.ml.ROW_SAMPLE, resp)  # 좌표와 라벨을 전달하여 모델을 훈련시킨다.
+    ret, result, neighbours, dist = knn.findNearest(newcomer, 3)  # k = 3으로 해서 최근접 이웃들을 찾아서 새로 추가된 데이터가 어느쪽에 속하는지 결정.
 
-    print(result, neighbours)
+    print('result : ', result,'neighbours : ', neighbours)
 
     return
 
