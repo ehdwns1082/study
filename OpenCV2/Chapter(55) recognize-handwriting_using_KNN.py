@@ -38,6 +38,7 @@ k = cv2.waitKey(0) & 0xFF
 def resize20(digitimg):  # 실제 손글씨 이미지를 인자로 받음
     img = cv2.imread(digitimg)  # 이미지를 받은 후 img 에 저장
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # img 를 그레이 스케일로 변환 후 gray 에 저장
+    cv2.imshow('test input', gray)
     ret = cv2.resize(gray, (20,20), fx=1, fy=1, interpolation=cv2.INTER_AREA)  # gray 를 20x20 픽셀 사이즈로 변환후 ret 에 저장
 
     ret, thr = cv2.threshold(ret, 127, 255, cv2.THRESH_BINARY_INV)  # ret 을 바이너리 이미지로 만들어 thr 에 저장함
@@ -126,7 +127,7 @@ def main():
         test = resize20(digit)
         result = OCR_for_Digits(test, traindata, traindata_labels)
 
-        print(result)
+        print('인식결과 : ', result)
 
         k = cv2.waitKey(0) & 0xFF
         if k > 47 and k < 58:
@@ -139,6 +140,8 @@ def main():
         if savetxt:
             np.savetxt('digits_for_ocr.txt',traindata, fmt='%2d', delimiter=' ')
             np.savetxt('digits_for_ocr_labels.txt',traindata_labels, fmt='%2d', delimiter=' ')
+
+
 
 
 
