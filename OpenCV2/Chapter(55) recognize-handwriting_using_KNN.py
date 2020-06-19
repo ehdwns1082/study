@@ -31,11 +31,13 @@
 import cv2
 import numpy as np
 
+global k
+k = cv2.waitKey(0) & 0xFF
+
 # 인자로 입력된 손글씨 숫자 이미지 파일을 읽어 20x20 픽셀로 변환한 후 인식을 위해 (1,400) 크기의 numpy 배열로 리턴한다.
 def resize20(digitimg):  # 실제 손글씨 이미지를 인자로 받음
     img = cv2.imread(digitimg)  # 이미지를 받은 후 img 에 저장
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # img 를 그레이 스케일로 변환 후 gray 에 저장
-    cv2.imshow('img', gray)
     ret = cv2.resize(gray, (20,20), fx=1, fy=1, interpolation=cv2.INTER_AREA)  # gray 를 20x20 픽셀 사이즈로 변환후 ret 에 저장
 
     ret, thr = cv2.threshold(ret, 127, 255, cv2.THRESH_BINARY_INV)  # ret 을 바이너리 이미지로 만들어 thr 에 저장함
@@ -71,6 +73,8 @@ def learningDigit():
     k = np.arange(10)  # k = [0 1 2 3 4 5 6 7 8 9], k.shape = (10,)
     train_labels = np.repeat(k, 500)[:, np.newaxis]  # 길이 10짜리 배열 k를 500번 반복하여 5000개 cell 에 대한 label 배열을 만듬
                                                      # arr[:, np.newaxis] : k.shape = (10, ) 이므로 열에 대한 축을 새롭게 생성함
+
+    #print('in_learningDigit, train_labels.shape : ', train_labels.shape)
     '''
     np.repeat(array, repeats, axis)
     1st : 인풋 어레이
@@ -85,35 +89,29 @@ def learningDigit():
 
 
 # 학습한 내용이 저장된 파일을 열어 내용을 읽은 후 traindata 와 traindata_labels 를 리턴한다.
-
-'''def loadLearningDigit(ocrdata):
-    with np.loadtxt(ocrdata) as f:
-        traindata = f['train']
-        traindata_labels = f['train_labels']
-        
-    return traindata, traindata_labels'''
 def loadLearningDigit(ocrdata, labels):
     traindata = np.loadtxt(ocrdata)
-    traindata_labels = np.loadtxt(labels)
+    traindata_labels = np.loadtxt(labels)[:, np.newaxis]
 
-    return traindata, traindata_labels
+    #print('in_loadLearningDigit, traintata_lavels.shape : ', traindata_labels.shape )
+
+    return traindata.astype(np.float32), traindata_labels.astype(np.float32)
 
 
 # 인자 test 는 우리가 인식할 손글씨 이미지를 resize20 으로 처리한 리턴값이다.
 # KNN 을 이용해 가장 일치하는 결과를 도춯하고 리턴한다.
 def OCR_for_Digits(test, traindata, traindata_labels):
-    knn = cv2.ml.KNearest_create()  # kNN 알고리즘 초기화
-    knn.train(traindata, cv2.ml.ROW_SAMPLE, traindata_labels)  # 좌표와 라벨을 전달하여 모델을 훈련시킨다.
+    knn = cv2.ml.KNearest_create()  # kNN 알고리즘 초기화/ kNN 분류기는 OpenCV 의 ml 모듈 일부이다
+    knn.train(traindata.astype(np.float32), cv2.ml.ROW_SAMPLE, traindata_labels.astype(np.float32))  # 좌표와 라벨을 전달하여 모델을 훈련시킨다.
     ret, result, neighbors, dist = knn.findNearest(test, k=5)  # k=5 로 해서 최근접 이웃들을 찾아서 새로 추가된 데이터가 어느쪽에 속하는지 결정.
 
-    return result
+    return result.astype(np.float32)
 
 
 # 각 숫자 파일은 0.png~9.png 이다. 숫자 파일을 20x20 으로 변환한 이미지를 화면에 보여주고 이 숫자를 인식한 결과를 print 로 출력한다.
 # 만약 인식한 숫자가 실제 숫자 이미지와 다르면 그에 해당하는 숫자를 키보드로 누르면 이 이미지에 대해 재학습 데이터를 만든다.
 def main():
 
-    #'''
     ocrdata = 'digits_for_ocr.txt'
     labels = 'digits_for_ocr_labels.txt'
 
@@ -126,7 +124,7 @@ def main():
     savetxt = False
     for digit in digits:
         test = resize20(digit)
-        result = OCR_for_Digits(test,traindata,traindata_labels)
+        result = OCR_for_Digits(test, traindata, traindata_labels)
 
         print(result)
 
@@ -139,17 +137,16 @@ def main():
 
         cv2.destroyAllWindows()
         if savetxt:
-            np.savetxt('digits_for_ocr.txt',traindata, fmt='%2d', delimiter='')
-            np.savetxt('digits_for_ocr_labels.txt',traindata_labels, fmt='%2d', delimiter='')
-        #'''
+            np.savetxt('digits_for_ocr.txt',traindata, fmt='%2d', delimiter=' ')
+            np.savetxt('digits_for_ocr_labels.txt',traindata_labels, fmt='%2d', delimiter=' ')
+
+
 
 
 learningDigit()
 while True:
     main()
-    out = cv2.waitKey(0) & 0xFF
-    if out == 27:
-        break
+
 
 
 
