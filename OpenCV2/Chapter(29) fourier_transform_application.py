@@ -11,3 +11,34 @@ LPF(Low Pass Filter) 는 낮은 주파수 대력만 통과시키는 필터이고
 푸리에 변환을 통해 주파수 영역으로 옮긴 이미지로 주파수 작업을 수행하면 보다 다양한 필터링 작업을 수행할 수 있다.
 '''
 
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+
+def fourier():
+    img = cv2.imread('musician.png', cv2.IMREAD_GRAYSCALE)
+
+    f = np.fft.fft2(img)
+    fshift = np.fft.fftshift(f)
+
+    rows, cols = img.shape
+    crow, ccol = int(rows/2), int(cols/2)
+
+    fshift[crow-30:crow+30, ccol-30:ccol+30] = 0
+    f_ishift = np.fft.ifftshift(fshift)
+    img_back = np.fft.ifft2(f_ishift)
+    img_back = np.abs(img_back)
+
+    plt.subplot(131), plt.imshow(img, cmap='gray')
+    plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+
+    plt.subplot(132), plt.imshow(img_back, cmap='gray')
+    plt.title('After HPT'), plt.xticks([]), plt.yticks([])
+
+    plt.subplot(133), plt.imshow(img_back)
+    plt.title('Result in JET'), plt.xticks([]), plt.yticks([])
+
+    plt.show()
+
+fourier()
+
